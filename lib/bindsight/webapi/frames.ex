@@ -54,8 +54,9 @@ defmodule BindSight.WebAPI.Frames do
       |> put_resp_content_type(contype)
       |> send_chunked(200)
 
-    stream |> Stream.map(fn x -> send_frame(conn, x) end) |> Stream.run()
-    conn
+    stream |> Stream.transform(conn, fn frame, conn ->
+      {[true], send_frame(conn, frame)}
+    end) |> Stream.run()
   end
 
   defp send_frame(conn, frame) do
@@ -96,7 +97,8 @@ defmodule BindSight.WebAPI.Frames do
       |> Enum.join("\n")
 
     {:ok, conn} = chunk(conn, headers)
-    {:ok, _conn} = chunk(conn, frame)
+    {:ok, conn} = chunk(conn, frame)
+    conn
   end
 
   defp get_stream(camera) do
