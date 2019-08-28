@@ -24,3 +24,6 @@ relay-*.tar
 
 # Ignore locks
 *.lock
+
+# Ignore IDE files
+.elixir_ls/
