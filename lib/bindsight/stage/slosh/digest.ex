@@ -106,7 +106,7 @@ defmodule BindSight.Stage.Slosh.Digest do
     do: handle_events(events, from, state)
 
   defp handle_headers([{"content-type", ctype} | tail], events, from, state) do
-    {:ok, pattern} = Regex.compile(";boundary=(?<bound>#{@boundary})")
+    {:ok, pattern} = Regex.compile("; *boundary=(?<bound>#{@boundary})")
     bound = "--" <> Regex.named_captures(pattern, ctype)["bound"]
 
     boundsize = byte_size(bound)

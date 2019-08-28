@@ -24,7 +24,7 @@ defmodule BindSight.WebAPI.Frames do
   alias BindSight.Stage.SpewSupervisor
 
   @defaults %{camera: :test, action: :snapshot}
-  @boundary "SNAP-HACKLE-STOP"
+  @boundary "boundarydonotcross"
 
   def send(conn, opts) do
     %{camera: camera, action: action} = Enum.into(opts, @defaults)
@@ -46,7 +46,7 @@ defmodule BindSight.WebAPI.Frames do
   defp send_stream(camera, conn) do
     stream = get_stream(camera)
 
-    contype = "multipart/x-mixed-replace;boundary=#{@boundary}"
+    contype = "multipart/x-mixed-replace; boundary=#{@boundary}"
 
     conn =
       conn
@@ -83,12 +83,14 @@ defmodule BindSight.WebAPI.Frames do
     # boundary to terminate the content-type line, we are likewise misbehaving
     # by expecting boundary to terminate the pre-header line.
 
+    len = byte_size(frame)
     headers =
       [
         "",
         "--#{@boundary}",
-        "X-Timestamp: #{time}",
         "Content-Type: image/jpg",
+        "Content-Length: #{len}",
+        "X-Timestamp: #{time}",
         "\n"
       ]
       |> Enum.join("\n")
