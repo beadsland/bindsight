@@ -28,6 +28,7 @@ defmodule BindSight.Stage.Slosh.Digest do
             boundsize: nil,
             eolex: nil,
             eohex: nil,
+            eopre: nil,
             data: [],
             done: false,
             frames: []
@@ -129,6 +130,7 @@ defmodule BindSight.Stage.Slosh.Digest do
     [pre, post] = String.split(text, state.bound, parts: 2)
 
     state = if state.eohex == nil, do: determine_eol(text, state), else: state
+    pre = Regex.replace(state.eopre, pre, "")
 
     [headers, post] = Regex.split(state.eohex, post, parts: 2)
 
@@ -143,6 +145,7 @@ defmodule BindSight.Stage.Slosh.Digest do
     [eol] = Regex.run(~r/[\n\r]+/, text, parts: 1)
     {:ok, eolex} = Regex.compile(eol)
     {:ok, eohex} = Regex.compile(eol <> eol)
-    %Digest{state | eolex: eolex, eohex: eohex}
+    {:ok, eopre} = Regex.compile(eol <> "$")
+    %Digest{state | eolex: eolex, eohex: eohex, eopre: eopre}
   end
 end
