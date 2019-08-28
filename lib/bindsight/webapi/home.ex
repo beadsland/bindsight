@@ -25,7 +25,7 @@ defmodule BindSight.WebAPI.Home do
 
   def send(conn, opts) do
     divs = links(opts[:cameras])
-    body = content_tag(:body, [content_tag(:h1, "Howdy!"), divs])
+    body = content_tag(:body, [content_tag(:h1, "Howdy!"), divs, agpl()])
     conn |> send_resp(200, body |> safe_to_string)
   end
 
@@ -34,6 +34,19 @@ defmodule BindSight.WebAPI.Home do
   defp links([head | tail]) do
     html = [camera(head), rest(head, :snapshot), rest(head, :stream), tag(:hr)]
     [html, links(tail)]
+  end
+
+  defp agpl do
+    [
+      content_tag(:p, []),
+      "Licensed under AGPL 3.0. ",
+      content_tag(:i, "Source"),
+      ": ",
+      anchor(
+        "https://github.com/beadsland/bindsight",
+        "https://github.com/beadsland/bindsight"
+      )
+    ]
   end
 
   defp spacer, do: raw(" &mdash; ")
