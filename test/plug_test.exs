@@ -57,7 +57,7 @@ defmodule PlugTest do
 
     Spigot.start_link(
       camera: :plugtest,
-      url: "http://192.168.42.50:#{port}/test/stream"
+      url: "http://localhost:#{port}/test/stream"
     )
 
     subscriptions = [Spigot.tap(:plugtest)]
