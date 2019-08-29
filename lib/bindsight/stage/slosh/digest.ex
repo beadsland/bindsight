@@ -21,6 +21,8 @@ defmodule BindSight.Stage.Slosh.Digest do
   use GenStage
   require Logger
 
+  alias BindSight.Common.Library
+
   @defaults %{source: :producer_not_specified, name: __MODULE__}
 
   defstruct status: nil,
@@ -106,12 +108,22 @@ defmodule BindSight.Stage.Slosh.Digest do
 
   defp handle_headers([{"content-type", ctype} | tail], events, from, state) do
     {:ok, pattern} = Regex.compile("; *boundary=(?<bound>#{@boundary})")
-    bound = "--" <> Regex.named_captures(pattern, ctype)["bound"]
+    caps = Regex.named_captures(pattern, ctype)
 
-    boundsize = byte_size(bound)
-    state = %__MODULE__{state | bound: bound, boundsize: boundsize}
+    if caps == nil do
+      ["digest", "not a stream", ctype]
+      |> Library.error_chain()
+      |> Logger.warn()
 
-    handle_headers(tail, events, from, state)
+      {:stop, [], state}
+    else
+      bound = "--" <> caps["bound"]
+
+      boundsize = byte_size(bound)
+      state = %__MODULE__{state | bound: bound, boundsize: boundsize}
+
+      handle_headers(tail, events, from, state)
+    end
   end
 
   defp handle_headers([_head | tail], events, from, state),
