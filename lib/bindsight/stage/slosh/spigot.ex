@@ -22,7 +22,7 @@ defmodule BindSight.Stage.Slosh.Spigot do
 
   alias BindSight.Common.Library
 
-  @defaults %{camera: :test, url: nil}
+  @defaults %{camera: nil, url: nil}
 
   def start_link(opts \\ []) do
     %{camera: camera} = Enum.into(opts, @defaults)
@@ -50,6 +50,7 @@ defmodule BindSight.Stage.Slosh.Spigot do
        ]},
       {BindSight.Stage.Slosh.Digest,
        [
+         camera: camera,
          source: name({:chunk, camera}),
          name: name({:digest, camera})
        ]}

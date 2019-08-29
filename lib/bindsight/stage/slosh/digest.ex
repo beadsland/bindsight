@@ -33,19 +33,23 @@ defmodule BindSight.Stage.Slosh.Digest do
             eopre: nil,
             data: [],
             done: false,
-            frames: []
+            frames: [],
+            camera: :test
 
   # per RFC 1341
   @bcharsnospace "[:alnum:]\\'\\(\\(\\+\\_\\,\\-\\.\\/\\:\\=\\?"
   @boundary "[#{@bcharsnospace}]+|\"[\ #{@bcharsnospace}]+\""
 
   def start_link(opts \\ []) do
-    %{source: source, name: name} = Enum.into(opts, @defaults)
-    GenStage.start_link(__MODULE__, source, name: name)
+    %{name: name} = Enum.into(opts, @defaults)
+    GenStage.start_link(__MODULE__, opts, name: name)
   end
 
-  def init(source) do
-    {:producer_consumer, _state = %__MODULE__{}, subscribe_to: [source]}
+  def init(opts) do
+    %{source: source, camera: camera} = Enum.into(opts, @defaults)
+
+    {:producer_consumer, _state = %__MODULE__{camera: camera},
+     subscribe_to: [source]}
   end
 
   def handle_events([head | tail], from, state = %__MODULE__{}) do
@@ -59,8 +63,15 @@ defmodule BindSight.Stage.Slosh.Digest do
       {:headers, _ref, hdrs} when status == 200 ->
         handle_headers(hdrs, tail, from, state)
 
-      {:headers, _ref, hdrs} ->
-        Logger.warn("Request failed: #{state.status}: " <> inspect(hdrs))
+      {:headers, _ref, _hdrs} ->
+        [
+          "Request failed",
+          state.camera |> Atom.to_string(),
+          state.status |> Integer.to_string()
+        ]
+        |> Library.error_chain()
+        |> Logger.warn()
+
         handle_events(tail, from, state)
 
       {:frame_headers, _ref, _hdrs} ->
@@ -111,7 +122,7 @@ defmodule BindSight.Stage.Slosh.Digest do
     caps = Regex.named_captures(pattern, ctype)
 
     if caps == nil do
-      ["digest", "not a stream", ctype]
+      ["digest", "not a stream", state.camera |> Atom.to_string(), ctype]
       |> Library.error_chain()
       |> Logger.warn()
 
