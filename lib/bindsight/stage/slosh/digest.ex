@@ -33,10 +33,9 @@ defmodule BindSight.Stage.Slosh.Digest do
             done: false,
             frames: []
 
-  @bcharsnospace "[:alnum:]\\'\\(\\(\\+\\_\\,\\-\\.\\/\\:\\=\\?" # per RFC 1341
+  # per RFC 1341
+  @bcharsnospace "[:alnum:]\\'\\(\\(\\+\\_\\,\\-\\.\\/\\:\\=\\?"
   @boundary "[#{@bcharsnospace}]+|\"[\ #{@bcharsnospace}]+\""
-
-  alias BindSight.Stage.Slosh.Digest
 
   def start_link(opts \\ []) do
     %{source: source, name: name} = Enum.into(opts, @defaults)
@@ -44,10 +43,10 @@ defmodule BindSight.Stage.Slosh.Digest do
   end
 
   def init(source) do
-    {:producer_consumer, _state = %Digest{}, subscribe_to: [source]}
+    {:producer_consumer, _state = %__MODULE__{}, subscribe_to: [source]}
   end
 
-  def handle_events([head | tail], from, state = %Digest{}) do
+  def handle_events([head | tail], from, state = %__MODULE__{}) do
     status = state.status
     boundsize = state.boundsize
 
@@ -85,17 +84,17 @@ defmodule BindSight.Stage.Slosh.Digest do
     end
   end
 
-  def handle_events([], _from, state = %Digest{}) do
+  def handle_events([], _from, state = %__MODULE__{}) do
     cond do
       state.done and state.status == 200 ->
-        {:noreply, [state.data], _state = %Digest{}}
+        {:noreply, [state.data], _state = %__MODULE__{}}
 
       state.done ->
-        {:noreply, [], _state = %Digest{}}
+        {:noreply, [], _state = %__MODULE__{}}
 
       state.frames ->
         {:noreply, Enum.reverse(state.frames),
-         _state = %Digest{state | frames: []}}
+         _state = %__MODULE__{state | frames: []}}
 
       true ->
         {:noreply, [], state}
@@ -110,7 +109,7 @@ defmodule BindSight.Stage.Slosh.Digest do
     bound = "--" <> Regex.named_captures(pattern, ctype)["bound"]
 
     boundsize = byte_size(bound)
-    state = %Digest{state | bound: bound, boundsize: boundsize}
+    state = %__MODULE__{state | bound: bound, boundsize: boundsize}
 
     handle_headers(tail, events, from, state)
   end
@@ -146,6 +145,6 @@ defmodule BindSight.Stage.Slosh.Digest do
     {:ok, eolex} = Regex.compile(eol)
     {:ok, eohex} = Regex.compile(eol <> eol)
     {:ok, eopre} = Regex.compile(eol <> "$")
-    %Digest{state | eolex: eolex, eohex: eohex, eopre: eopre}
+    %__MODULE__{state | eolex: eolex, eohex: eohex, eopre: eopre}
   end
 end
