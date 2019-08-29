@@ -113,7 +113,11 @@ defmodule BindSight.Common.MintJulep do
     if err do
       path = Library.query_path(uri)
 
-      [["Failed ", call], [uri.host, ":", uri.port, "/", path], inspect(err)]
+      [
+        ["Failed ", call |> Atom.to_string()],
+        [uri.host, ":", uri.port |> Integer.to_string(), path],
+        inspect(err)
+      ]
       |> Library.error_chain()
       |> Logger.warn()
 
