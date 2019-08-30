@@ -34,7 +34,7 @@ defmodule BindSight.Stage.Slosh.Digest do
             data: [],
             done: false,
             frames: [],
-            camera: :test
+            camera: nil
 
   # per RFC 1341
   @bcharsnospace "[:alnum:]\\'\\(\\(\\+\\_\\,\\-\\.\\/\\:\\=\\?"
@@ -100,10 +100,10 @@ defmodule BindSight.Stage.Slosh.Digest do
   def handle_events([], _from, state = %__MODULE__{}) do
     cond do
       state.done and state.status == 200 ->
-        {:noreply, [state.data], _state = %__MODULE__{}}
+        {:noreply, [state.data], _state = %__MODULE__{camera: state.camera}}
 
       state.done ->
-        {:noreply, [], _state = %__MODULE__{}}
+        {:noreply, [], _state = %__MODULE__{camera: state.camera}}
 
       state.frames ->
         {:noreply, Enum.reverse(state.frames),
