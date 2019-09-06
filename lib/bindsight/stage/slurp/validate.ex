@@ -52,7 +52,13 @@ defmodule BindSight.Stage.Slurp.Validate do
     discard = length(events) - length(good)
 
     if discard > 0 do
-      Logger.warn(["Discarding ", discard, " bad frames from ", camera])
+      [
+        "Discarding ",
+        discard |> Integer.to_string(),
+        " bad frames from ",
+        camera |> Atom.to_string()
+      ]
+      |> Logger.warn()
     end
 
     {:noreply, good, camera}
