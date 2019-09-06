@@ -36,7 +36,7 @@ defmodule BindSight.WebAPI.Server do
     acceptors = Library.get_env(:cowboy_acceptors, 100)
 
     transport = [num_acceptors: acceptors]
-    protocol = [idle_timeout: :infinity]
+    protocol = [idle_timeout: :infinity, chunked: false]
 
     children = [
       {Plug.Cowboy,
