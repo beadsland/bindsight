@@ -54,9 +54,11 @@ defmodule BindSight.WebAPI.Frames do
       |> put_resp_content_type(contype)
       |> send_chunked(200)
 
-    stream |> Stream.transform(conn, fn frame, conn ->
+    stream
+    |> Stream.transform(conn, fn frame, conn ->
       {[true], send_frame(conn, frame)}
-    end) |> Stream.run()
+    end)
+    |> Stream.run()
   end
 
   defp send_frame(conn, frame) do
@@ -70,9 +72,9 @@ defmodule BindSight.WebAPI.Frames do
         "Content-Type: image/jpg",
         "Content-Length: #{len}",
         "X-Timestamp: #{time}",
-        "\n"
+        "\r\n"
       ]
-      |> Enum.join("\n")
+      |> Enum.join("\r\n")
 
     {:ok, conn} = chunk(conn, headers)
     {:ok, conn} = chunk(conn, frame)
