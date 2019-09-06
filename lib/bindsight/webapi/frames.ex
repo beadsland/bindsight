@@ -69,7 +69,7 @@ defmodule BindSight.WebAPI.Frames do
       [
         "",
         "--#{@boundary}",
-        "Content-Type: image/jpg",
+        "Content-Type: image/jpeg",
         "Content-Length: #{len}",
         "X-Timestamp: #{time}",
         "\r\n"
