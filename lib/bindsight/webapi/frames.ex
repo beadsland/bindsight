@@ -46,7 +46,7 @@ defmodule BindSight.WebAPI.Frames do
   defp send_stream(camera, conn) do
     stream = get_stream(camera)
 
-    contype = "multipart/x-mixed-replace; boundary=#{@boundary}"
+    contype = "multipart/x-mixed-replace; boundary=\"#{@boundary}\""
 
     conn =
       conn

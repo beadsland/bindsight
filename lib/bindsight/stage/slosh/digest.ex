@@ -38,7 +38,6 @@ defmodule BindSight.Stage.Slosh.Digest do
 
   # per RFC 1341
   @bcharsnospace "[:alnum:]\\'\\(\\(\\+\\_\\,\\-\\.\\/\\:\\=\\?"
-  @boundary "[#{@bcharsnospace}]+|\"[\ #{@bcharsnospace}]+\""
 
   def start_link(opts \\ []) do
     %{name: name} = Enum.into(opts, @defaults)
@@ -118,27 +117,43 @@ defmodule BindSight.Stage.Slosh.Digest do
     do: handle_events(events, from, state)
 
   defp handle_headers([{"content-type", ctype} | tail], events, from, state) do
-    {:ok, pattern} = Regex.compile("; *boundary=(?<bound>#{@boundary})")
-    caps = Regex.named_captures(pattern, ctype)
+    {:ok, noquote} = Regex.compile("; *boundary=(?<bound>[#{@bcharsnospace}]+)")
 
-    if caps == nil do
-      ["digest", "not a stream", state.camera |> Atom.to_string(), ctype]
-      |> Library.error_chain()
-      |> Logger.warn()
+    {:ok, yesquote} =
+      Regex.compile("; *boundary=\"(?<bound>[ #{@bcharsnospace}]+)\"")
 
-      {:stop, [], state}
-    else
-      bound = "--" <> caps["bound"]
+    cond do
+      Regex.match?(noquote, ctype) ->
+        handle_bound(noquote, ctype, tail, events, from, state)
 
-      boundsize = byte_size(bound)
-      state = %__MODULE__{state | bound: bound, boundsize: boundsize}
+      Regex.match?(yesquote, ctype) ->
+        handle_bound(yesquote, ctype, tail, events, from, state)
 
-      handle_headers(tail, events, from, state)
+      true ->
+        [
+          "digest",
+          "bad content-type",
+          state.camera |> Atom.to_string(),
+          ctype
+        ]
+        |> Library.error_chain()
+        |> Logger.warn()
+
+        {:stop, [], state}
     end
   end
 
   defp handle_headers([_head | tail], events, from, state),
     do: handle_headers(tail, events, from, state)
+
+  defp handle_bound(pattern, ctype, tail, events, from, state) do
+    caps = Regex.named_captures(pattern, ctype)
+
+    bound = "--" <> caps["bound"]
+    boundsize = byte_size(bound)
+    state = %__MODULE__{state | bound: bound, boundsize: boundsize}
+    handle_headers(tail, events, from, state)
+  end
 
   defp handle_text([head = {:text, ref, text} | tail], from, state) do
     if String.contains?(text, state.bound) do
