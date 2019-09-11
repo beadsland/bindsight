@@ -73,7 +73,7 @@ defmodule BindSight.Stage.Slosh.Digest do
 
         handle_events(tail, from, state)
 
-      {:frame_headers, _ref, _hdrs} ->
+      {:frame_headers, _ref, hdrs} ->
         frame = state.data |> Enum.reverse() |> Enum.join()
         frames = if frame == "", do: state.frames, else: [frame | state.frames]
 
@@ -179,7 +179,7 @@ defmodule BindSight.Stage.Slosh.Digest do
   end
 
   defp determine_eol(text, state) do
-    [eol] = Regex.run(~r/[\n\r]+/, text, parts: 1)
+    [eol] = Regex.run(~r/[\n\r]{1,2}/, text, parts: 1)
     {:ok, eolex} = Regex.compile(eol)
     {:ok, eohex} = Regex.compile(eol <> eol)
     {:ok, eopre} = Regex.compile(eol <> "$")

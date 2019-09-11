@@ -67,7 +67,6 @@ defmodule BindSight.WebAPI.Frames do
 
     headers =
       [
-        "",
         "--#{@boundary}",
         "Content-Type: image/jpeg",
         "Content-Length: #{len}",
@@ -78,6 +77,7 @@ defmodule BindSight.WebAPI.Frames do
 
     {:ok, conn} = chunk(conn, headers)
     {:ok, conn} = chunk(conn, frame)
+    {:ok, conn} = chunk(conn, "\r\n")
     conn
   end
 
