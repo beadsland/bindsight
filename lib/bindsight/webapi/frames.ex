@@ -62,7 +62,7 @@ defmodule BindSight.WebAPI.Frames do
   end
 
   defp send_frame(conn, frame) do
-    time = System.os_time()
+    time = System.system_time(:second)
     len = byte_size(frame)
 
     headers =
