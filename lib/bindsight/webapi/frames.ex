@@ -39,7 +39,7 @@ defmodule BindSight.WebAPI.Frames do
     [frame | _] = camera |> get_stream |> Enum.take(1)
 
     conn
-    |> put_resp_content_type("image/jpg")
+    |> put_resp_content_type("image/jpeg")
     |> send_resp(200, frame)
   end
 
