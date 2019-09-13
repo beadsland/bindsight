@@ -48,10 +48,15 @@ defmodule BindSight.WebAPI.Frames do
 
     contype = "multipart/x-mixed-replace; boundary=#{@boundary}"
 
+    # Don't use put_resp_content_type(), as it appends an unnecessary charset
+    # part. This is irrelevant for multipart, and breaks some browsers (namely,
+    # Safari), which incorrectly implement RFC 1341(7.2.1), and the semicolon
+    # and all that follows as part of the boundary string.
+
     conn =
       conn
       |> put_resp_header("connection", "close")
-      |> put_resp_content_type(contype)
+      |> put_resp_header("content-type", contype)
       |> send_chunked(200)
 
     stream

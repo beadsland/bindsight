@@ -73,7 +73,7 @@ defmodule BindSight.Stage.Slosh.Digest do
 
         handle_events(tail, from, state)
 
-      {:frame_headers, _ref, hdrs} ->
+      {:frame_headers, _ref, _hdrs} ->
         frame = state.data |> Enum.reverse() |> Enum.join()
         frames = if frame == "", do: state.frames, else: [frame | state.frames]
 
