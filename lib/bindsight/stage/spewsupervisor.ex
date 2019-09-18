@@ -21,6 +21,7 @@ defmodule BindSight.Stage.SpewSupervisor do
   use DynamicSupervisor
   require Logger
 
+  alias BindSight.Common.Library
   alias BindSight.Stage.Spew.Spigot
   alias BindSight.Stage.SpewCounter
 
@@ -28,7 +29,10 @@ defmodule BindSight.Stage.SpewSupervisor do
 
   def start_link(_) do
     Logger.info("Ready to spew clients...")
-    DynamicSupervisor.start_link(__MODULE__, [], name: :spewsup)
+
+    DynamicSupervisor.start_link(__MODULE__, [],
+      name: Library.get_register_name(:spewsup)
+    )
   end
 
   @impl true
@@ -42,7 +46,7 @@ defmodule BindSight.Stage.SpewSupervisor do
 
     {:ok, _pid} =
       DynamicSupervisor.start_child(
-        :spewsup,
+        Library.get_register_name(:spewsup),
         {Spigot, camera: camera, session: session}
       )
 
