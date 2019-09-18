@@ -48,11 +48,15 @@ defmodule BindSight.WebAPI.Frames do
 
     contype = "multipart/x-mixed-replace; boundary=#{@boundary}"
 
+    # Set protocol options for this connection, rather than globally.
+    req = elem(conn.adapter, 1)
+    opts = %{idle_timeout: :infinity, chunked: false}
+    Kernel.send(req.pid, {{req.pid, req.streamid}, {:set_options, opts}})
+
     # Don't use put_resp_content_type(), as it appends an unnecessary charset
     # part. This is irrelevant for multipart, and breaks some browsers (namely,
     # Safari), which incorrectly implement RFC 1341(7.2.1), and the semicolon
     # and all that follows as part of the boundary string.
-
     conn =
       conn
       |> put_resp_header("connection", "close")
