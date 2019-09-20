@@ -45,11 +45,31 @@ defmodule BindSight.Stage.Slosh.Chunk do
     {:noreply, Enum.reverse(rlist), [hold]}
   end
 
+  defp adhere([{:text_list, ref, list} | [{:text, ref, y} | tail]]),
+    do: adhere([{:text_list, ref, [y | list]} | tail])
+
   defp adhere([{:text, ref, x} | [{:text, ref, y} | tail]]),
-    do: adhere([{:text, ref, x <> y} | tail])
+    do: adhere([{:text_list, ref, [y, x]} | tail])
+
+  defp adhere([{:data_list, ref, list} | [{:data, ref, y} | tail]]),
+    do: adhere([{:data_list, ref, [y | list]} | tail])
 
   defp adhere([{:data, ref, x} | [{:data, ref, y} | tail]]),
-    do: adhere([{:data, ref, x <> y} | tail])
+    do: adhere([{:data_list, ref, [y, x]} | tail])
+
+  defp adhere([{:text_list, ref, list} | [{:data, ref, y} | tail]]),
+    do:
+      adhere([
+        {:text, ref, list |> Enum.reverse() |> Enum.join("")}
+        | [{:data, ref, y} | tail]
+      ])
+
+  defp adhere([{:data_list, ref, list} | [{:text, ref, y} | tail]]),
+    do:
+      adhere([
+        {:data, ref, list |> Enum.reverse() |> Enum.join("")}
+        | [{:text, ref, y} | tail]
+      ])
 
   defp adhere([head | tail]), do: [head | adhere(tail)]
   defp adhere([]), do: []
