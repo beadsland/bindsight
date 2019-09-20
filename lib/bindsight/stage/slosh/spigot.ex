@@ -16,7 +16,7 @@
 ####
 
 defmodule BindSight.Stage.Slosh.Spigot do
-  @moduledoc "GenStage pipeline segment for processing a single camera feed."
+  @moduledoc "GenStage pipeline segment for consuming a single camera feed."
 
   use Supervisor
 

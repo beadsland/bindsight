@@ -16,7 +16,7 @@
 ####
 
 defmodule BindSight.Stage.Slosh.Digest do
-  @moduledoc "Slurp consumer-producer to frames from chunks."
+  @moduledoc "Slosh consumer-producer to extract frames from data/text stream."
 
   use GenStage
   require Logger

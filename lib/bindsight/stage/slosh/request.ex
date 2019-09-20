@@ -16,7 +16,7 @@
 ####
 
 defmodule BindSight.Stage.Slosh.Request do
-  @moduledoc "Slurp spigot producer to request snapshots from a camera."
+  @moduledoc "Slosh spigot producer to request snapshots from a camera."
 
   use BindSight.Common.MintJulep
 
