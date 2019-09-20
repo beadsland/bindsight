@@ -33,39 +33,20 @@ defmodule BindSight.Common.MintJulep do
 
   @optional_callbacks handle_normal_info: 2
 
-  defmacro __using__(_) do
-    quote([]) do
+  defmacro __using__(opts) do
+    quote location: :keep, bind_quoted: [opts: opts] do
       @behaviour BindSight.Common.MintJulep
-
-      use GenStage
-      require Logger
-
-      alias BindSight.Common.Library
       alias BindSight.Common.MintJulep
 
+      use GenStage, opts
+
       @impl true
-      def handle_info(message, _state = {mod, uri, :deferred}),
-        do:
-          handle_info(message, _state = {mod, uri, MintJulep.connect(mod, uri)})
-
-      def handle_info(:unfold_deferred_state, state),
-        do: {:noreply, [], state}
-
-      def handle_info(message, state = {mod, uri, conn}) do
-        case Mint.HTTP.stream(conn, message) do
-          :unknown ->
-            apply(mod, :handle_normal_info, [message, state])
-
-          {:ok, conn, resp} ->
-            apply(mod, :handle_mint, [resp, _state = {mod, uri, conn}])
-
-          {:error, conn, err, resp} ->
-            {:noreply, resp,
-             _state = MintJulep.sip(_state = {mod, uri, conn}, :response, err)}
-        end
-      end
+      def handle_info(resp, state), do: MintJulep.handle_info(resp, state)
 
       def handle_normal_info(resp, state = {mod, uri, conn}) do
+        require Logger
+        alias BindSight.Common.Library
+
         ["MintJulep", uri, "unknown info message", inspect(resp)]
         |> Library.error_chain()
         |> Logger.error()
@@ -107,6 +88,31 @@ defmodule BindSight.Common.MintJulep do
     end
 
     sip(mod, uri)
+  end
+
+  @doc """
+  Handle info messages, passing to handle_mint/2 or handle_normal_info/2
+  callbacks, as appropriate.
+  """
+  def handle_info(message, _state = {mod, uri, :deferred}),
+    do:
+      handle_info(message, _state = {mod, uri, connect(mod, uri)})
+
+  def handle_info(:unfold_deferred_state, state),
+    do: {:noreply, [], state}
+
+  def handle_info(message, state = {mod, uri, conn}) do
+    case Mint.HTTP.stream(conn, message) do
+      :unknown ->
+        apply(mod, :handle_normal_info, [message, state])
+
+      {:ok, conn, resp} ->
+        apply(mod, :handle_mint, [resp, _state = {mod, uri, conn}])
+
+      {:error, conn, err, resp} ->
+        {:noreply, resp,
+         _state = sip(_state = {mod, uri, conn}, :response, err)}
+    end
   end
 
   @doc "Callback to connect to camera host and issue a request thereto."
