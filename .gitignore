@@ -27,3 +27,5 @@ relay-*.tar
 
 # Ignore IDE files
 .elixir_ls/
+
+fprot.*

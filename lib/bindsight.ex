@@ -18,7 +18,11 @@
 defmodule BindSight do
   @moduledoc "Concurrent frame-scrubbing webcam broadcast gateway daemon."
 
+  alias BindSight.Common.Library
+
   def start(_type, _args) do
+    run_profiler()
+
     Port.open({:spawn, "epmd -daemon"}, [:binary])
     {:ok, hostname} = :inet.gethostname()
 
@@ -36,5 +40,18 @@ defmodule BindSight do
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, restart: :permanent)
+  end
+
+  defp run_profiler do
+    if Library.get_env(:run_profiler) do
+      :fprof.trace([:start, verbose: true, procs: :all])
+
+      spawn(fn ->
+        :timer.sleep(10_000)
+        :fprof.trace(:stop)
+        :fprof.profile()
+        :fprof.analyse(totals: false, dest: 'prof.analysis')
+      end)
+    end
   end
 end
