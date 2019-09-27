@@ -76,9 +76,9 @@ defmodule BindSight.Stage.Slosh.Chunk do
 
   defp handle_data([{:data, ref, data} | tail], from, rlist) do
     chunks =
-      ~r/(?=[\r\n\-])/
+      ~r/(?=\r\n|--)/
       |> Regex.split(data)
-      |> Enum.map(fn x -> Regex.split(~r/(?<=[\r\n\-])/, x) end)
+      |> Enum.map(fn x -> Regex.split(~r/(?<=\r\n|--)/, x) end)
       |> List.flatten()
       |> Enum.map(fn x ->
         if String.printable?(x), do: {:text, ref, x}, else: {:data, ref, x}
